@@ -89,7 +89,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           operation: dmlArgs.operation as 'insert' | 'update' | 'delete' | 'upsert',
           objectName: dmlArgs.objectName as string,
           records: dmlArgs.records as Record<string, any>[],
-          externalIdField: dmlArgs.externalIdField as string | undefined
+          externalIdField: dmlArgs.externalIdField as string | undefined,
+          guidedInput: dmlArgs.guidedInput as boolean | undefined
         };
         return await handleDMLRecords(conn, validatedArgs);
       }
