@@ -16,6 +16,18 @@ import { DML_RECORDS, handleDMLRecords, DMLArgs } from "./tools/dml.js";
 import { MANAGE_OBJECT, handleManageObject, ManageObjectArgs } from "./tools/manageObject.js";
 import { MANAGE_FIELD, handleManageField, ManageFieldArgs } from "./tools/manageField.js";
 import { SEARCH_ALL, handleSearchAll, SearchAllArgs, WithClause } from "./tools/searchAll.js";
+import { 
+  GET_CASE_METADATA, 
+  SEARCH_ACCOUNTS, 
+  SEARCH_CONTACTS, 
+  CREATE_CASE,
+  GET_PICKLIST_VALUES,
+  handleGetCaseMetadata,
+  handleSearchAccounts,
+  handleSearchContacts,
+  handleCreateCase,
+  handleGetPicklistValues
+} from "./tools/caseCreation.js";
 
 dotenv.config();
 
@@ -40,7 +52,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     DML_RECORDS,
     MANAGE_OBJECT,
     MANAGE_FIELD,
-    SEARCH_ALL
+    SEARCH_ALL,
+    GET_CASE_METADATA,
+    SEARCH_ACCOUNTS,
+    SEARCH_CONTACTS,
+    CREATE_CASE,
+    GET_PICKLIST_VALUES
   ],
 }));
 
@@ -170,6 +187,30 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
 
         return await handleSearchAll(conn, validatedArgs);
+      }
+
+      case "salesforce_get_case_metadata": {
+        return await handleGetCaseMetadata(conn);
+      }
+
+      case "salesforce_search_accounts": {
+        const { searchTerm } = args as { searchTerm: string };
+        if (!searchTerm) throw new Error('searchTerm is required');
+        return await handleSearchAccounts(conn, { searchTerm });
+      }
+
+      case "salesforce_search_contacts": {
+        const { accountId } = args as { accountId: string };
+        if (!accountId) throw new Error('accountId is required');
+        return await handleSearchContacts(conn, { accountId });
+      }
+
+      case "salesforce_create_case": {
+        return await handleCreateCase(conn, args);
+      }
+
+      case "salesforce_get_picklist_values": {
+        return await handleGetPicklistValues(conn, args as { fieldName: string });
       }
 
       default:
