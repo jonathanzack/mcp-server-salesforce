@@ -1,5 +1,5 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { DMLResult } from "../types/salesforce";
+import { DMLResult, SalesforceField } from "../types/salesforce.js";
 
 export const DML_RECORDS: Tool = {
   name: "salesforce_dml_records",
@@ -30,6 +30,11 @@ export const DML_RECORDS: Tool = {
         type: "string",
         description: "External ID field name for upsert operations",
         optional: true
+      },
+      guidedInput: {
+        type: "boolean",
+        description: "Whether to use guided input for creating records (especially useful for Case records)",
+        optional: true
       }
     },
     required: ["operation", "objectName", "records"]
@@ -41,16 +46,34 @@ export interface DMLArgs {
   objectName: string;
   records: Record<string, any>[];
   externalIdField?: string;
+  guidedInput?: boolean;
 }
 
-export async function handleDMLRecords(conn: any, args: DMLArgs) {
-  const { operation, objectName, records, externalIdField } = args;
+export async function handleDMLRecords(conn: any, args: DMLArgs): Promise<{ content: { type: string, text: string }[], isError: boolean }> {
+  const { operation, objectName, records, externalIdField, guidedInput } = args;
 
   let result: DMLResult | DMLResult[];
   
   switch (operation) {
     case 'insert':
-      result = await conn.sobject(objectName).create(records);
+      if (objectName === 'Case') {
+        // For Case objects, direct users to use the dedicated case creation tools instead
+        return {
+          content: [{
+            type: "text",
+            text: "For creating Case records, please use the dedicated case creation tools:\n" +
+                  "1. salesforce_get_case_metadata - Get required fields and picklist values\n" +
+                  "2. salesforce_search_accounts - Search for accounts\n" +
+                  "3. salesforce_search_contacts - Search for contacts\n" +
+                  "4. salesforce_get_picklist_values - Get picklist values for a specific field\n" +
+                  "5. salesforce_create_case - Create the case with collected information\n\n" +
+                  "These tools provide a better guided experience for creating cases."
+          }],
+          isError: true
+        };
+      } else {
+        result = await conn.sobject(objectName).create(records);
+      }
       break;
     case 'update':
       result = await conn.sobject(objectName).update(records);
@@ -76,7 +99,18 @@ export async function handleDMLRecords(conn: any, args: DMLArgs) {
   let responseText = `${operation.toUpperCase()} operation completed.\n`;
   responseText += `Processed ${results.length} records:\n`;
   responseText += `- Successful: ${successCount}\n`;
-  responseText += `- Failed: ${failureCount}\n\n`;
+  responseText += `- Failed: ${failureCount}\n`;
+
+  // Include record IDs for successful operations
+  if (successCount > 0) {
+    responseText += '\nSuccessful Records:\n';
+    results.forEach((r: DMLResult, idx: number) => {
+      if (r.success && r.id) {
+        responseText += `Record ${idx + 1} - ID: ${r.id}\n`;
+      }
+    });
+  }
+  responseText += '\n';
 
   if (failureCount > 0) {
     responseText += 'Errors:\n';
@@ -102,7 +136,7 @@ export async function handleDMLRecords(conn: any, args: DMLArgs) {
             responseText += ` [${error.statusCode}]`;
           }
           if (error.fields) {
-            const fields = Array.isArray(error.fields) ? error.fields.join(', ') : error.fields;
+            const fields = Array.isArray(error.fields) ? error.fields.join(', ') : String(error.fields);
             responseText += `\n    Fields: ${fields}`;
           }
           responseText += '\n';
