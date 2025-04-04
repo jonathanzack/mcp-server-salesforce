@@ -19,7 +19,7 @@ An MCP (Model Context Protocol) server implementation that integrates Claude wit
 ## Installation
 
 ```bash
-npm install -g @tsmztech/mcp-server-salesforce
+npm install -g @aptean/mcp-server-salesforce
 ```
 
 ## Tools
@@ -87,7 +87,7 @@ Add to your `claude_desktop_config.json`:
   "mcpServers": {
     "salesforce": {
       "command": "npx",
-      "args": ["-y", "@tsmztech/mcp-server-salesforce"],
+      "args": ["-y", "@aptean/mcp-server-salesforce"],
       "env": {
         "SALESFORCE_USERNAME": "your_username",
         "SALESFORCE_PASSWORD": "your_password",
@@ -141,7 +141,7 @@ Add to your `claude_desktop_config.json`:
 ### Building from source
 ```bash
 # Clone the repository
-git clone https://github.com/tsmztech/mcp-server-salesforce.git
+git clone https://github.com/aptean/mcp-server-salesforce.git
 
 # Navigate to directory
 cd mcp-server-salesforce
@@ -160,4 +160,4 @@ Contributions are welcome! Feel free to submit a Pull Request.
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Issues and Support
-If you encounter any issues or need support, please file an issue on the [GitHub repository](https://github.com/tsmztech/mcp-server-salesforce/issues).
+If you encounter any issues or need support, please file an issue on the [GitHub repository](https://github.com/aptean/mcp-server-salesforce/issues).
